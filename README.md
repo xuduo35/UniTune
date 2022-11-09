@@ -2,7 +2,7 @@
 Implementation UniTune base on stable diffusion, not official code, based on https://github.com/JoePenna/Dreambooth-Stable-Diffusion
 
 # Train
-python3 -u main.py --base configs/stable-diffusion/v1-finetune_unfrozen.yaml -t --actual_resume ./sd-v1-4-full-ema.ckpt -n "dog" --gpus 0, --max_training_steps 100 --token "mmdd111" --data_root ./training_images/dog --token_only
+python3 -u main.py --base configs/stable-diffusion/v1-finetune_unfrozen.yaml -t --actual_resume ./sd-v1-4-full-ema.ckpt -n "dog" --gpus 0, --max_training_steps 100 --token "mmdd111" --data_root ./training_images/dog --token_only --n_accumulate 4
 
 # Inference
 python3 stable_txt2img.py --ddim_eta 0.0 --n_samples 4 --n_iter 1 --ddim_steps 50 --ckpt logs/dog2022-11-09T03-22-15_dog/checkpoints/last.ckpt --prompt "mmdd111 dog in pixar style" --blendmodel

@@ -9,7 +9,8 @@ from einops import rearrange
 from torchvision.utils import make_grid, save_image
 import time
 from pytorch_lightning import seed_everything
-from torch import autocast
+#from torch import autocast
+from torch.cuda.amp import autocast as autocast
 from contextlib import contextmanager, nullcontext
 
 from ldm.util import instantiate_from_config
@@ -141,8 +142,20 @@ def main():
     parser.add_argument(
         "--scale",
         type=float,
-        default=7.5,
+        default=7,
         help="unconditional guidance scale: eps = eps(x, empty) + scale * (eps(x, cond) - eps(x, empty))",
+    )
+    parser.add_argument(
+        "--blendmodel",
+        action='store_true',
+        default=False,
+        help="blend with original model, check ldm/models/diffusion/ddim.py",
+    )
+    parser.add_argument(
+        "--blendpos",
+        type=int,
+        default=-1,
+        help="blend with original model, check ldm/models/diffusion/ddim.py",
     )
     parser.add_argument(
         "--from-file",
@@ -198,10 +211,19 @@ def main():
     device = torch.device("cuda") if torch.cuda.is_available() else torch.device("cpu")
     model = model.to(device)
 
+    blendmodel = None
+
+    if opt.blendmodel:
+        blendmodel = load_model_from_config(config, f"./sd-v1-4-full-ema.ckpt")
+        blendmodel = blendmodel.to(device)
+
+        if opt.blendpos < 0:
+            opt.blendpos = opt.ddim_steps // 2
+
     if opt.plms:
-        sampler = PLMSSampler(model)
+        sampler = PLMSSampler(model, blendmodel, opt.blendpos)
     else:
-        sampler = DDIMSampler(model)
+        sampler = DDIMSampler(model, blendmodel, opt.blendpos)
 
     os.makedirs(opt.outdir, exist_ok=True)
     outpath = opt.outdir
@@ -230,7 +252,8 @@ def main():
 
     precision_scope = autocast if opt.precision=="autocast" else nullcontext
     with torch.no_grad():
-        with precision_scope("cuda"):
+        #with precision_scope("cuda"):
+        with precision_scope():
             with model.ema_scope():
                 tic = time.time()
                 all_samples = list()

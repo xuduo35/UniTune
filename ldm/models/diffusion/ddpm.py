@@ -495,7 +495,8 @@ class LatentDiffusion(DDPM):
             self.model.train = disabled_train
             for param in self.model.parameters():
                 param.requires_grad = False
-        
+
+       
         self.embedding_manager = None
 
 
@@ -1458,7 +1459,18 @@ class LatentDiffusion(DDPM):
             else: # Otherwise, train only embedding
                 opt = torch.optim.AdamW(embedding_params, lr=lr)
         else:
-            params = list(self.model.parameters())
+            params = []
+            params_lowlr = []
+            for name, param in self.model.named_parameters():
+                if name.find('attn1') > 0 or name.find('attn2') > 0:
+                    #if name.find('to_q')>0 or name.find('to_k')>0 or name.find('to_v')>0:
+                    if name.find('to_out') > 0:
+                        params.append(param)
+                    else:
+                        params_lowlr.append(param)
+                else:
+                    params_lowlr.append(param)
+            #params = list(self.model.parameters())
             if self.cond_stage_trainable:
                 print(f"{self.__class__.__name__}: Also optimizing conditioner params!")
                 params = params + list(self.cond_stage_model.parameters())
@@ -1466,7 +1478,11 @@ class LatentDiffusion(DDPM):
                 print('Diffusion model optimizing logvar')
                 params.append(self.logvar)
 
-            opt = torch.optim.AdamW(params, lr=lr)
+            #opt = torch.optim.AdamW(params, lr=lr)
+            opt = torch.optim.AdamW([
+                {'params': params, 'lr': lr},
+                {'params': params_lowlr, 'lr': lr*0.001}
+                ])
 
         return opt
 

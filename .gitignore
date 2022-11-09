@@ -6,3 +6,6 @@ train.bat
 __pycache__
 */**/__pycache__
 logs
+train.log
+*.ckpt
+outputs

@@ -1,6 +1,32 @@
 # UniTune: Text-Driven Image Editing by Fine Tuning an Image Generation Model on a Single Image
 Implementation UniTune base on stable diffusion, not official code, based on https://github.com/JoePenna/Dreambooth-Stable-Diffusion
 
+# Train
+python3 -u main.py --base configs/stable-diffusion/v1-finetune_unfrozen.yaml -t --actual_resume ./sd-v1-4-full-ema.ckpt -n "dog" --gpus 0, --max_training_steps 100 --token "mmdd111" --data_root ./training_images/dog --token_only
+
+# Inference
+python3 stable_txt2img.py --ddim_eta 0.0 --n_samples 4 --n_iter 1 --ddim_steps 50 --ckpt logs/dog2022-11-09T03-22-15_dog/checkpoints/last.ckpt --prompt "mmdd111 dog in pixar style" --blendmodel
+![result](https://github.com/xuduo35/UniTune/raw/main/samples/pixar.jpg)
+
+python3 stable_txt2img.py --ddim_eta 0.0 --n_samples 4 --n_iter 1 --ddim_steps 50 --ckpt logs/dog2022-11-09T03-22-15_dog/checkpoints/last.ckpt --prompt "mmdd111 dog sitting down"
+![result](https://github.com/xuduo35/UniTune/raw/main/samples/sittingdown.jpg)
+
+python3 stable_txt2img.py --ddim_eta 0.0 --n_samples 4 --n_iter 1 --ddim_steps 50 --ckpt logs/dog2022-11-09T03-22-15_dog/checkpoints/last.ckpt --prompt "mmdd111 lion"
+![result](https://github.com/xuduo35/UniTune/raw/main/samples/lion.jpg)
+
+python3 stable_txt2img.py --ddim_eta 0.0 --n_samples 4 --n_iter 1 --ddim_steps 50 --ckpt logs/dog2022-11-09T03-22-15_dog/checkpoints/last.ckpt --prompt "mmdd111 dog in Simpsons style" --blendmodel
+![result](https://github.com/xuduo35/UniTune/raw/main/samples/Simpsons.jpg)
+
+python3 stable_txt2img.py --ddim_eta 0.0 --n_samples 4 --n_iter 1 --ddim_steps 50 --ckpt logs/dog2022-11-09T03-22-15_dog/checkpoints/last.ckpt --prompt "mmdd111 dog in Simpsons style" --blendmodel --scale 16
+![result](https://github.com/xuduo35/UniTune/raw/main/samples/Simpsons_scalex16.jpg)
+
+# Implementation deatils
+- freeze first stage model weights
+- learning rate set to 0.00009, 0.0001 is ok also (same with paper configuration)
+- accumulate_grad_batches set to 4, in paper configuration batch size is set to 4
+- train UNetModel CrossAttention module, freeze diffusion model other parts by using very low learning rate. refer to modification of ldm/models/diffusion/ddpm.py 
+- only token, no class word, disable flip augmentation, no reg data
+
 # Index
 
 - [Notes by Joe Penna](#notes-by-joe-penna)

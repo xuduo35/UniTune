@@ -158,6 +158,12 @@ def main():
         help="blend with original model, check ldm/models/diffusion/ddim.py",
     )
     parser.add_argument(
+        "--t0",
+        type=float,
+        default=1.,
+        help="t0 for SDEdit mentioned in paper",
+    )
+    parser.add_argument(
         "--from-file",
         type=str,
         help="if specified, load prompts from this file",
@@ -220,6 +226,9 @@ def main():
         if opt.blendpos < 0:
             opt.blendpos = opt.ddim_steps // 2
 
+        if opt.ddim_steps-opt.blendpos < int(opt.ddim_steps * (1.-opt.t0)):
+            opt.blendpos = opt.ddim_steps-int(opt.ddim_steps * (1.-opt.t0))
+
     if opt.plms:
         sampler = PLMSSampler(model, blendmodel, opt.blendpos)
     else:
@@ -265,9 +274,13 @@ def main():
                         if isinstance(prompts, tuple):
                             prompts = list(prompts)
                         c = model.get_learned_conditioning(prompts)
+                        c0 = model.get_learned_conditioning(batch_size * [prompts[0].split(' ')[0]]) # assume token pos
+
                         shape = [opt.C, opt.H // opt.f, opt.W // opt.f]
                         samples_ddim, _ = sampler.sample(S=opt.ddim_steps,
                                                          conditioning=c,
+                                                         conditioning0=c0,
+                                                         t0=opt.t0,
                                                          batch_size=opt.n_samples,
                                                          shape=shape,
                                                          verbose=False,

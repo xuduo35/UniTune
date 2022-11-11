@@ -60,6 +60,7 @@ class PLMSSampler(object):
                batch_size,
                shape,
                conditioning=None,
+               conditioning0=None, t0=1.,
                callback=None,
                normals_sequence=None,
                img_callback=None,

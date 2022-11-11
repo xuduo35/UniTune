@@ -1463,9 +1463,13 @@ class LatentDiffusion(DDPM):
             params_lowlr = []
             for name, param in self.model.named_parameters():
                 if name.find('attn1') > 0 or name.find('attn2') > 0:
+                #if name.find('attn2') > 0:
                     #if name.find('to_q')>0 or name.find('to_k')>0 or name.find('to_v')>0:
                     if name.find('to_out') > 0:
-                        params.append(param)
+                        if name.find('attn1') > 0 or (name.find('attn2') > 0 and name.find('.weight') > 0):
+                            params.append(param)
+                        else:
+                            params_lowlr.append(param)
                     else:
                         params_lowlr.append(param)
                 else:

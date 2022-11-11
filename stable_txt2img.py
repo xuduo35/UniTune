@@ -229,6 +229,10 @@ def main():
         if opt.ddim_steps-opt.blendpos < int(opt.ddim_steps * (1.-opt.t0)):
             opt.blendpos = opt.ddim_steps-int(opt.ddim_steps * (1.-opt.t0))
 
+    token = opt.prompt.split(' ')[0] # assume token pos
+    editprompt = opt.prompt[min(len(token)+1,len(opt.prompt)):]
+    print("token: {}, edit prompt: {}".format(token, editprompt))
+
     if opt.plms:
         sampler = PLMSSampler(model, blendmodel, opt.blendpos)
     else:
@@ -274,11 +278,13 @@ def main():
                         if isinstance(prompts, tuple):
                             prompts = list(prompts)
                         c = model.get_learned_conditioning(prompts)
-                        c0 = model.get_learned_conditioning(batch_size * [prompts[0].split(' ')[0]]) # assume token pos
+                        c0 = model.get_learned_conditioning(batch_size * [token])
+                        cedit = model.get_learned_conditioning(batch_size * [editprompt])
 
                         shape = [opt.C, opt.H // opt.f, opt.W // opt.f]
                         samples_ddim, _ = sampler.sample(S=opt.ddim_steps,
                                                          conditioning=c,
+                                                         cedit=cedit,
                                                          conditioning0=c0,
                                                          t0=opt.t0,
                                                          batch_size=opt.n_samples,

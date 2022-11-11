@@ -9,3 +9,4 @@ logs
 train.log
 *.ckpt
 outputs
+training_images

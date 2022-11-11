@@ -61,6 +61,7 @@ class DDIMSampler(object):
                batch_size,
                shape,
                conditioning=None,
+               cedit=None,
                conditioning0=None, t0=1.,
                callback=None,
                normals_sequence=None,
@@ -96,7 +97,7 @@ class DDIMSampler(object):
         size = (batch_size, C, H, W)
         print(f'Data shape for DDIM sampling is {size}, eta {eta}')
 
-        samples, intermediates = self.ddim_sampling(conditioning, conditioning0, t0, size,
+        samples, intermediates = self.ddim_sampling(conditioning, cedit, conditioning0, t0, size,
                                                     callback=callback,
                                                     img_callback=img_callback,
                                                     quantize_denoised=quantize_x0,
@@ -115,7 +116,7 @@ class DDIMSampler(object):
         return samples, intermediates
 
     @torch.no_grad()
-    def ddim_sampling(self, cond, cond0, t0, shape,
+    def ddim_sampling(self, cond, cedit, cond0, t0, shape,
                       x_T=None, ddim_use_original_steps=False,
                       callback=None, timesteps=None, quantize_denoised=False,
                       mask=None, x0=None, img_callback=None, log_every_t=100,
@@ -156,7 +157,8 @@ class DDIMSampler(object):
                                       noise_dropout=noise_dropout, score_corrector=score_corrector,
                                       corrector_kwargs=corrector_kwargs,
                                       unconditional_guidance_scale=unconditional_guidance_scale,
-                                      unconditional_conditioning=unconditional_conditioning)
+                                      unconditional_conditioning=unconditional_conditioning,
+                                      cedit=cedit)
             img, pred_x0 = outs
             if callback: callback(i)
             if img_callback: img_callback(pred_x0, i)
@@ -170,11 +172,13 @@ class DDIMSampler(object):
     @torch.no_grad()
     def p_sample_ddim(self, x, c, t, index, repeat_noise=False, use_original_steps=False, quantize_denoised=False,
                       temperature=1., noise_dropout=0., score_corrector=None, corrector_kwargs=None,
-                      unconditional_guidance_scale=1., unconditional_conditioning=None):
+                      unconditional_guidance_scale=1., unconditional_conditioning=None,
+                      cedit=None):
         model = self.model
 
         if self.blendmodel is not None and index <= self.blendpos:
             model = self.blendmodel
+            c = cedit
 
         b, *_, device = *x.shape, x.device
 

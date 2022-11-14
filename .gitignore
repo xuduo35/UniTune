@@ -10,3 +10,4 @@ train.log
 *.ckpt
 outputs
 training_images
+command.txt

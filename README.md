@@ -2,7 +2,8 @@
 Implementation UniTune base on stable diffusion, not official code, based on https://github.com/JoePenna/Dreambooth-Stable-Diffusion
 
 # Colab link
-https://colab.research.google.com/drive/1V6nM-iGHQi7TDqMDEn4ohO6-MmiQMm6L?usp=sharing, simple version based on https://github.com/ShivamShrirao/diffusers/blob/main/examples/dreambooth/DreamBooth_Stable_Diffusion.ipynb
+https://colab.research.google.com/drive/1V6nM-iGHQi7TDqMDEn4ohO6-MmiQMm6L?usp=sharing, simple version based on https://github.com/ShivamShrirao/diffusers/blob/main/examples/dreambooth/DreamBooth_Stable_Diffusion.ipynb,
+support t0 parameter: https://colab.research.google.com/drive/1WA1CDQrKDbaLjvfxvQXyUGsZ5ldx9IIe?usp=sharing
 
 # Train
 python3 -u main.py --base configs/stable-diffusion/v1-finetune_unfrozen.yaml -t --actual_resume ./sd-v1-4-full-ema.ckpt -n "dog" --gpus 0, --max_training_steps 100 --token "mmdd111" --data_root ./training_images/dog --token_only --n_accumulate 4
